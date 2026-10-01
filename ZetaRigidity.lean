@@ -1,7 +1,14 @@
 import ZetaRigidity.Primes
+import ZetaRigidity.Automorphisms
 import ZetaRigidity.Valuation
+import ZetaRigidity.Characters
 import ZetaRigidity.DirichletUniqueness
 import ZetaRigidity.Rigidity
 import ZetaRigidity.Model
+import ZetaRigidity.LogIndependence
+import ZetaRigidity.Zeta
+import ZetaRigidity.Sharpness
+import ZetaRigidity.EulerProduct
 import ZetaRigidity.Order
+import ZetaRigidity.Addition
 import ZetaRigidity.Examples

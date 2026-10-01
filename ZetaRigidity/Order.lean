@@ -36,9 +36,6 @@ namespace ZetaRigidity
 /-- The reconstructed magnitude order: formal products compared by their recovered value. -/
 def MLt (m n : FormalProd) : Prop := val m < val n
 
-/-- A prime element is one of the abstract primes -- an atom of the monoid. -/
-def IsPrimeElt (m : FormalProd) : Prop := ∃ i, m = atom i
-
 /-- `R` lies strictly between `P` and `Q` in the reconstructed order. -/
 def Between (P Q R : FormalProd) : Prop := MLt P R ∧ MLt R Q
 
