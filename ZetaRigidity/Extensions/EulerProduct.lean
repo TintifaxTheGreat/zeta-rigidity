@@ -14,27 +14,27 @@ to the end and proves the defining identity of the subject:
 
     ζ_P(s) = ∏_p (1 - p^{-s})⁻¹
 
-for an arbitrary `Valuation` -- that is, for an arbitrary Beurling generalized prime system with
-distinct primes, not just for the rational primes.
+for an arbitrary `Valuation`, that is for a generalized prime system with distinct primes and
+not only for the rational primes.
 
 ## Main result
 
-`eulerProduct`, stated as a limit of finite partial products, following Mathlib's own convention
-for `EulerProduct.eulerProduct_completely_multiplicative`. That lemma cannot be reused here: it is
-hard-wired to `f : ℕ →*₀ F` over `Nat.primesBelow`, whereas the whole point of a Beurling system
-is that the primes are unknown reals.
+`eulerProduct`, stated as a limit of finite partial products, following the convention of
+`EulerProduct.eulerProduct_completely_multiplicative` in Mathlib. That lemma does not apply
+here: it is stated for `f : ℕ →*₀ F` over `Nat.primesBelow`, whereas here the primes are
+unknown reals.
 
-## The shape of the proof
+## Proof outline
 
-Iterating `tsum_peel` `n` times (`tsum_peel_iter`) gives, exactly,
+Iterating `tsum_peel` `n` times (`tsum_peel_iter`) gives the exact identity
 
     ζ_P(s) = (∏ i < n, (1 - v i ^ (-s))⁻¹) * A n,     A n := ∑' m, (v.shiftBy n).extend m ^ (-s)
 
-so everything reduces to `A n → 1`. That is the only analytic content, and it needs the
-summability hypothesis: the recursion `A n = (1 - v n ^ (-s))⁻¹ * A (n+1)` coming from
-`tsum_peel` is scale-invariant, so it determines the ratios `A n / A (n+1)` but admits any
-positive limit whatsoever. The bound has to come from outside, and it does: `A n` is a sum over
-the formal products using no prime below `n`, and those sets shrink to `{1}`.
+so the theorem reduces to `A n → 1`. That step needs the summability hypothesis. The recursion
+`A n = (1 - v n ^ (-s))⁻¹ * A (n+1)` from `tsum_peel` is scale-invariant: it determines the
+ratios `A n / A (n+1)` but admits any positive limit, so it gives no bound on its own. The bound
+comes from the observation that `A n` is a sum over the formal products using no prime below
+`n`, and those sets shrink to `{1}`.
 -/
 
 namespace ZetaRigidity
@@ -117,8 +117,8 @@ lemma shiftIter_injective (n : ℕ) : Function.Injective (shiftIter n) := by
   have h := congrArg (fun m => expo m (i + n)) hab
   simpa using h
 
-/-- **The image of `shiftIter n` is exactly the formal products using no prime below `n`.** This
-is what makes `A n` a sum over a shrinking family of subsets of a *fixed* index type. -/
+/-- The image of `shiftIter n` is the set of formal products using no prime below `n`. This
+makes `A n` a sum over a shrinking family of subsets of a fixed index type. -/
 lemma mem_range_shiftIter {n : ℕ} {m : FormalProd} :
     m ∈ Set.range (shiftIter n) ↔ ∀ i < n, expo m i = 0 := by
   constructor
@@ -146,8 +146,7 @@ lemma summable_shiftBy (h : Summable fun m : FormalProd => v.extend m ^ (-s)) :
     exact this.congr fun m => by
       rw [Valuation.extend_congr (v.shiftBy_shift k) m]
 
-/-- **The Euler product, as a finite identity.** Peeling `n` times is exact: no limit has been
-taken yet, and `A n` is whatever is left over. -/
+/-- Peeling `n` times gives an exact identity: no limit is taken, and `A n` is the remainder. -/
 theorem tsum_peel_iter (hs : 0 < s) (h : Summable fun m : FormalProd => v.extend m ^ (-s)) :
     ∀ n, ∑' m : FormalProd, v.extend m ^ (-s)
       = (∏ i ∈ Finset.range n, (1 - v i ^ (-s))⁻¹)
@@ -171,14 +170,14 @@ theorem tsum_peel_iter (hs : 0 < s) (h : Summable fun m : FormalProd => v.extend
 
 /-! ## The remainder tends to `1`
 
-`A n` is the Dirichlet sum of the system with the first `n` primes deleted. Written on the
-*original* index type it is the sum over formal products using no prime below `n`, and those
-sets shrink to `{1}`. Since the full series converges, its tail outside any large enough finite
-set is small, and that is what forces `A n → 1`.
+`A n` is the Dirichlet sum of the system with the first `n` primes deleted. On the original
+index type it is the sum over formal products using no prime below `n`, and those sets shrink
+to `{1}`. Since the full series converges, its tail outside any sufficiently large finite set is
+small, which gives `A n → 1`.
 -/
 
-/-- The summand with the empty product removed. Note this does not depend on `n`: the whole
-point is that `A n` is a sum of *the same* function over a shrinking index set. -/
+/-- The summand with the empty product removed. This does not depend on `n`, so `A n` is a sum
+of the same function over a shrinking index set. -/
 private noncomputable def tailTerm (v : Valuation) (s : ℝ) (y : FormalProd) : ℝ :=
   if y = 1 then 0 else v.extend y ^ (-s)
 
@@ -227,8 +226,8 @@ private lemma tsum_shiftBy_eq (h : Summable fun m : FormalProd => v.extend m ^ (
     (summable_tailTerm h).comp_injective (shiftIter_injective n)
   rw [h1.tsum_add h2, tsum_ite_eq]
 
-/-- The key finiteness step: any fixed finite set of formal products is eventually disjoint from
-the image of `shiftIter n`, apart from the empty product. -/
+/-- Any fixed finite set of formal products is eventually disjoint from the image of
+`shiftIter n`, apart from the empty product. -/
 private lemma eventually_disjoint_range (F : Finset FormalProd) :
     ∃ N, ∀ n ≥ N, ∀ y ∈ F, y ≠ 1 → y ∉ Set.range (shiftIter n) := by
   refine ⟨(F.sup fun y => (Multiplicative.toAdd y).support.sup id) + 1,
@@ -241,7 +240,7 @@ private lemma eventually_disjoint_range (F : Finset FormalProd) :
     Finset.le_sup (f := fun z => (Multiplicative.toAdd z).support.sup id) hy
   exact absurd (mem_range_shiftIter.mp hmem i (by omega)) hi.ne'
 
-/-- **The remainder tends to `1`.** -/
+/-- The remainder tends to `1`. -/
 theorem tendsto_tsum_shiftBy (h : Summable fun m : FormalProd => v.extend m ^ (-s)) :
     Tendsto (fun n => ∑' m : FormalProd, (v.shiftBy n).extend m ^ (-s)) atTop (nhds 1) := by
   have hT := summable_tailTerm h
@@ -291,7 +290,7 @@ theorem tendsto_tsum_shiftBy (h : Summable fun m : FormalProd => v.extend m ^ (-
   rw [add_zero] at hlim
   exact hlim.congr fun n => (tsum_shiftBy_eq h n).symm
 
-/-- The remainder never drops below `1`: the empty product is always there. -/
+/-- The remainder is at least `1`, because the empty product contributes `1`. -/
 lemma one_le_tsum_shiftBy (h : Summable fun m : FormalProd => v.extend m ^ (-s)) (n : ℕ) :
     1 ≤ ∑' m : FormalProd, (v.shiftBy n).extend m ^ (-s) := by
   rw [tsum_shiftBy_eq h n]
@@ -301,13 +300,13 @@ lemma one_le_tsum_shiftBy (h : Summable fun m : FormalProd => v.extend m ^ (-s))
 
 /-! ## The Euler product -/
 
-/-- **The Euler product for a Beurling zeta function.**
+/-- The Euler product for the zeta function of a generalized prime system.
 
     ζ_P(s) = ∏_p (1 - p^{-s})⁻¹
 
-stated, as in Mathlib's `EulerProduct.eulerProduct_completely_multiplicative`, as the limit of
-the partial products over the first `n` primes. Unlike that lemma this holds for an arbitrary
-`Valuation`: the primes are unknown reals, not `Nat.primesBelow`. -/
+stated as the limit of the partial products over the first `n` primes, as in
+`EulerProduct.eulerProduct_completely_multiplicative`. Unlike that lemma this holds for an
+arbitrary `Valuation`, where the primes are unknown reals rather than `Nat.primesBelow`. -/
 theorem eulerProduct (hs : 0 < s) (h : Summable fun m : FormalProd => v.extend m ^ (-s)) :
     Tendsto (fun n => ∏ i ∈ Finset.range n, (1 - v i ^ (-s))⁻¹) atTop
       (nhds (∑' m : FormalProd, v.extend m ^ (-s))) := by
@@ -329,13 +328,12 @@ theorem eulerProduct (hs : 0 < s) (h : Summable fun m : FormalProd => v.extend m
 
 /-! ## Non-vacuity
 
-The standing check of this development: instantiate at the intended model and see whether a known
-identity comes back out. Here it is the classical Euler product for `ζ(2)`. The route is
-independent -- the machinery above never mentions the rational primes -- so agreement tests the
-whole chain rather than restating a definition.
+Instantiating at the intended model recovers the classical Euler product for `ζ(2)`. The
+argument above never mentions the rational primes, so this tests the whole chain rather than
+restating a definition.
 -/
 
-/-- **The classical Euler product at `s = 2`**, recovered as an instance. -/
+/-- The classical Euler product at `s = 2`, as an instance of `eulerProduct`. -/
 theorem primeVal_eulerProduct :
     Tendsto (fun n => ∏ i ∈ Finset.range n, (1 - (Nat.nth Nat.Prime i : ℝ) ^ (-(2 : ℝ)))⁻¹)
       atTop (nhds (∑' j : ℕ, ((j : ℝ) + 1) ^ (-(2 : ℝ)))) := by

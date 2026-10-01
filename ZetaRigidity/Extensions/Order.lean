@@ -6,28 +6,25 @@ Authors: Eugen Lindorfer
 import ZetaRigidity.Model
 
 /-!
-# The reconstructed order, and what it costs
+# The order recovered from the magnitude
 
-Once magnitude is recovered, formal products carry a total order and "twin primes" can be stated
-structurally -- no addition appears in the definition:
+Once magnitudes are available the formal products carry a total order, and twin primes can be
+defined without writing addition:
 
     `Twin P Q` : `P` and `Q` are prime elements, no prime element lies strictly between them,
                  and exactly one element lies strictly between them.
 
-The point of this file is `twin_iff`, which proves this structural definition is **equivalent** to
-the classical one, `val Q = val P + 2`. That is worth having for two opposite reasons.
+## Main result
 
-It confirms the translation is faithful: the structural definition really does pick out twin
-primes, and nothing was lost.
+`twin_iff` proves this definition is equivalent to the classical one, `val Q = val P + 2`.
 
-It also makes concrete the caveat in `ZetaRigidity/Rigidity.lean`. The structural definition avoids
-*writing* `+ 2`, but it is interdefinable with it, so the twin prime conjecture in this language
-is the classical conjecture, not an easier one. Addition was not eliminated; it was relocated
-into the magnitude order. (By Julia Robinson's theorem addition is in fact first-order definable
-from multiplication together with this order, so this is an instance of a general phenomenon
-rather than an artefact of the definition chosen here.)
+The equivalence serves two purposes. It confirms the translation is faithful, so the structural
+definition does pick out twin primes. It also makes the limitation precise: the definition
+avoids writing `+ 2` but is interdefinable with it, so the twin prime conjecture stated this way
+is the classical conjecture. Addition is not eliminated, only expressed through the order.
+`ZetaRigidity/Extensions/Addition.lean` proves this in general.
 
-Everything here is stated for the concrete model of `ZetaRigidity/Model.lean`; by rigidity every
+Everything here is stated for the model of `ZetaRigidity/Model.lean`. By rigidity every
 ζ-normalized valuation is isomorphic to that model.
 -/
 
@@ -39,8 +36,8 @@ def MLt (m n : FormalProd) : Prop := val m < val n
 /-- `R` lies strictly between `P` and `Q` in the reconstructed order. -/
 def Between (P Q R : FormalProd) : Prop := MLt P R ∧ MLt R Q
 
-/-- **Twin primes, stated without addition.** Two prime elements with no prime element strictly
-between them, and exactly one element of any kind strictly between them. -/
+/-- Twin primes, defined without addition: two prime elements with no prime element strictly
+between them and exactly one element of any kind strictly between them. -/
 def Twin (P Q : FormalProd) : Prop :=
   IsPrimeElt P ∧ IsPrimeElt Q ∧
   (∀ R, IsPrimeElt R → ¬ Between P Q R) ∧
@@ -58,14 +55,9 @@ lemma isPrimeElt_iff {m : FormalProd} : IsPrimeElt m ↔ (val m).Prime := by
   change _ = Finsupp.mapDomain (Nat.nth Nat.Prime) (Finsupp.single _ 1)
   rw [Finsupp.mapDomain_single, Nat.nth_count hp]
 
-/-- Every value strictly between two others is attained by exactly one formal product. -/
-lemma exists_unique_val {n : ℕ} (hn : 0 < n) : ∃! R, val R = n := by
-  obtain ⟨R, hR⟩ := exists_val_eq hn
-  exact ⟨R, hR, fun S hS => val_injective (by rw [hS, hR])⟩
-
 /-! ## The translation theorem -/
 
-/-- **The structural definition of twin primes is the classical one.** -/
+/-- The definition above is equivalent to the classical one. -/
 theorem twin_iff {P Q : FormalProd} :
     Twin P Q ↔ (val P).Prime ∧ (val Q).Prime ∧ val Q = val P + 2 := by
   constructor

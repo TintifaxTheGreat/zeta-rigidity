@@ -6,20 +6,20 @@ Authors: Eugen Lindorfer
 import ZetaRigidity.Rigidity
 
 /-!
-# The intended model, and non-vacuity
+# The intended model
 
-`eq_nth_prime_of_isZetaNormalized` would be true and worthless if nothing satisfied
-`IsZetaNormalized`. This file rules that out by exhibiting the intended model -- the valuation
-sending the `i`-th abstract prime to the `i`-th ordinary prime -- and **proving** it is
-ζ-normalized (`primeVal_isZetaNormalized`).
+`eq_nth_prime_of_isZetaNormalized` would be vacuously true if nothing satisfied
+`IsZetaNormalized`. This file exhibits the intended model, the valuation sending the `i`-th
+abstract prime to the `i`-th ordinary prime, and proves it is ζ-normalized
+(`primeVal_isZetaNormalized`).
 
-The proof needs no Euler product. The ordinary integer represented by a formal product is
-`val`, and unique factorisation says `val` is a bijection onto the positive integers; the
-Dirichlet series identity is then just a reindexing of a `tsum` along that bijection.
+The proof uses no Euler product. The ordinary integer represented by a formal product is `val`,
+and unique factorisation makes `val` a bijection onto the positive integers, so the Dirichlet
+series identity is a reindexing of a `tsum` along that bijection.
 
-Combined with `isZetaNormalized_of_equiv` this also establishes the claim made in
-`ZetaRigidity/Rigidity.lean`: the ζ-hypothesis is *equivalent* to being a multiplicative
-enumeration of the positive integers, not weaker than it.
+With `isZetaNormalized_of_equiv` this also gives the converse recorded in
+`ZetaRigidity/Rigidity.lean`: the ζ-hypothesis is equivalent to being a multiplicative
+enumeration of the positive integers.
 -/
 
 namespace ZetaRigidity
@@ -160,7 +160,7 @@ lemma primeVal_extend_eq_modelEquiv (m : FormalProd) :
   push_cast [Nat.cast_sub (by omega : 1 ≤ val m)]
   ring
 
-/-- **The hypothesis of the rigidity theorem is satisfiable.** The intended valuation -- the
+/-- The hypothesis of the rigidity theorem is satisfiable: the intended valuation, the
 `i`-th abstract prime sent to the `i`-th ordinary prime -- is ζ-normalized. So
 `eq_nth_prime_of_isZetaNormalized` is not vacuously true. -/
 theorem primeVal_isZetaNormalized : IsZetaNormalized primeVal :=

@@ -3,22 +3,21 @@ Copyright (c) 2026 Eugen Lindorfer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eugen Lindorfer
 -/
-import ZetaRigidity.Order
+import ZetaRigidity.Extensions.Order
 
 /-!
-# Addition was relocated, not eliminated
+# Addition is definable from multiplication and the order
 
-`ZetaRigidity/Order.lean` observes that once the magnitude order is available alongside
-multiplication, ordinary addition comes back: the structural definition of twin primes is
-*provably* the classical one. That observation was justified by citing Julia Robinson. This file
-replaces the citation with a proof.
+`ZetaRigidity/Extensions/Order.lean` shows that once the magnitude order is available alongside
+multiplication, ordinary addition is recoverable. This file proves that in general rather than
+citing it.
 
 ## Main results
 
-* `msucc_eq_iff` -- the successor is definable from the order alone: `msucc m` is the least
-  element strictly above `m`, with nothing in between.
-* `add_definable` -- **addition is definable from multiplication and the order**. Writing `S` for
-  the order-defined successor,
+* `msucc_eq_iff`: the successor is definable from the order alone, as the least element strictly
+  above `m` with nothing in between.
+* `add_definable`: addition is definable from multiplication and the order. Writing `S` for the
+  order-defined successor,
 
       val R = val P + val Q   ↔   S (P·R) · S (Q·R) = S (S (P·Q) · R · R)
 
@@ -37,14 +36,13 @@ multiplication together with `<`. The particular polynomial form used here,
 is Tarski's identity as presented in Boolos, Burgess and Jeffrey, *Computability and Logic*,
 Chapter 24. Expanding both sides leaves `x·z + y·z = z²`, which for `z > 0` is `x + y = z`.
 
-## Scope
+## Limitations
 
-This is the *semantic* statement: an explicit formula over `ℕ`, proved to characterise addition.
-It is deliberately not the model-theoretic statement `Definable₂` over a first-order language for
-`(×, <)`, which would need `FirstOrder.Language` machinery that Mathlib does not yet exercise for
-arithmetic beyond `ModelTheory/Arithmetic/Presburger`. What is proved here is the mathematical
-content -- the formula exists and is correct; what is not proved is its packaging as a formula of
-a formalised logic.
+This is the semantic statement: an explicit formula over `ℕ`, proved to characterise addition.
+It is not the model-theoretic statement `Definable₂` over a first-order language for `(×, <)`,
+which would require `FirstOrder.Language` machinery that Mathlib does not yet develop for
+arithmetic beyond `ModelTheory/Arithmetic/Presburger`. The formula and its correctness are
+proved; its packaging as a formula of a formalised logic is not.
 -/
 
 namespace ZetaRigidity
@@ -58,8 +56,8 @@ noncomputable def msucc (m : FormalProd) : FormalProd :=
 @[simp] lemma val_msucc (m : FormalProd) : val (msucc m) = val m + 1 :=
   (exists_val_eq (n := val m + 1) (Nat.succ_pos _)).choose_spec
 
-/-- **The successor is order-definable.** `msucc m` is characterised as the element above `m`
-with nothing strictly between -- a condition in the language of the order alone. -/
+/-- The successor is order-definable: `msucc m` is the element above `m` with nothing strictly
+between, a condition in the language of the order alone. -/
 theorem msucc_eq_iff (m n : FormalProd) :
     msucc m = n ↔ MLt m n ∧ ∀ r, ¬ (MLt m r ∧ MLt r n) := by
   simp only [MLt]
@@ -78,7 +76,7 @@ theorem msucc_eq_iff (m n : FormalProd) :
 
 /-! ## Robinson's identity -/
 
-/-- **Tarski's identity**, over `ℕ`. For `z > 0` this characterises `x + y = z` using only
+/-- Tarski's identity over `ℕ`. For `z > 0` this characterises `x + y = z` using only
 multiplication and `+ 1`. -/
 theorem add_eq_iff_tarski {x y z : ℕ} (hz : 0 < z) :
     x + y = z ↔ (1 + x * z) * (1 + y * z) = 1 + (1 + x * y) * (z * z) := by
@@ -91,13 +89,13 @@ theorem add_eq_iff_tarski {x y z : ℕ} (hz : 0 < z) :
 
 /-! ## Addition on the reconstructed structure -/
 
-/-- **Addition is definable from multiplication and the order.** The right-hand side uses only
-the monoid multiplication and `msucc`, and `msucc` is order-definable by `msucc_eq_iff`; so this
+/-- Addition is definable from multiplication and the order. The right-hand side uses only the
+monoid multiplication and `msucc`, and `msucc` is order-definable by `msucc_eq_iff`, so this
 exhibits `+` inside the language `(×, <)`.
 
-This is the precise form of the caveat recorded in `ZetaRigidity/Order.lean`: the ζ-condition
-recovers the order, and the order brings addition back with it. The addition-free *appearance* of
-`Twin` is a matter of notation, not of expressive power. -/
+This states precisely the limitation recorded in `ZetaRigidity/Extensions/Order.lean`: the
+ζ-condition recovers the order, and the order determines addition. The absence of `+` from the
+definition of `Twin` is a matter of notation, not of expressive power. -/
 theorem add_definable (P Q R : FormalProd) :
     val R = val P + val Q ↔
       msucc (P * R) * msucc (Q * R) = msucc (msucc (P * Q) * R * R) := by
@@ -109,14 +107,5 @@ theorem add_definable (P Q R : FormalProd) :
   constructor
   · intro h; linarith [h]
   · intro h; linarith [h]
-
-/-- The contrapositive reading, stated plainly: the reconstructed structure is *not* an
-addition-free arithmetic. Anything expressible with `+` is expressible without writing it. -/
-theorem exists_add_definition :
-    ∃ F : FormalProd → FormalProd → FormalProd → Prop,
-      (∀ P Q R, F P Q R ↔ val R = val P + val Q) ∧
-      (∀ P Q R, F P Q R ↔
-        msucc (P * R) * msucc (Q * R) = msucc (msucc (P * Q) * R * R)) :=
-  ⟨fun P Q R => val R = val P + val Q, fun _ _ _ => Iff.rfl, add_definable⟩
 
 end ZetaRigidity

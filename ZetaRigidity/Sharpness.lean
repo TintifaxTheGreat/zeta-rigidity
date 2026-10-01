@@ -7,37 +7,37 @@ import ZetaRigidity.Rigidity
 import ZetaRigidity.Model
 
 /-!
-# Sharpness: agreement at one point is not enough
+# Agreement at one point is not enough
 
-The rigidity theorem requires the Dirichlet series to match ζ at *every* integer `≥ 2`. This file
-shows the requirement is not decorative: agreement at `s = 2` alone leaves the valuation free.
+The rigidity theorem requires the Dirichlet series to match ζ at every integer `≥ 2`. This file
+shows the requirement cannot be reduced to a single point: there is a valuation that matches
+`ζ(2)` exactly and is not the primes.
 
 ## Main results
 
-* `peelEquiv` -- the splitting `FormalProd ≃ ℕ × FormalProd`: a formal product is the exponent of
-  the first prime together with everything else, shifted down. This is the Euler-product
-  decomposition, stated one prime at a time; `ZetaRigidity/EulerProduct.lean` iterates it to the
-  end and gets `ζ_P(s) = ∏_p (1 - p^{-s})⁻¹`.
-* `tsum_peel` -- the Dirichlet sum factors accordingly, into a geometric series and the sum for
-  the shifted valuation.
-* `badTwo_tsum_eq_primeVal_tsum` / `badTwo_not_isZetaNormalized` -- a valuation that is *not* the
-  primes and yet reproduces `ζ(2)` exactly.
-* `exists_not_isZetaNormalized_agreeing_at_two` -- the two packaged as the sharpness statement.
+* `peelEquiv`: the splitting `FormalProd ≃ ℕ × FormalProd`, separating the exponent of the first
+  prime from the rest. This is the Euler-product decomposition for one prime;
+  `ZetaRigidity/Extensions/EulerProduct.lean` iterates it to obtain
+  `ζ_P(s) = ∏_p (1 - p^{-s})⁻¹`.
+* `tsum_peel`: the Dirichlet sum factors into a geometric series and the sum for the shifted
+  valuation.
+* `badTwo_tsum_eq_primeVal_tsum` and `badTwo_not_isZetaNormalized`: a valuation that is not the
+  primes and reproduces `ζ(2)` exactly.
+* `exists_not_isZetaNormalized_agreeing_at_two`: the two combined.
 
 ## The counterexample
 
-Two degrees of freedom are needed. Any single-parameter rescaling of one prime moves the sum
-strictly monotonically, so it meets `ζ(2)` only at the intended value; the perturbation has to
-give back at one prime what it takes at another. So move the first prime from `2` down to
-`√(45/13) ≈ 1.861` and the second from `3` up to `4`, leaving `5, 7, 11, …` alone. The two
+Two degrees of freedom are needed. Rescaling a single prime moves the sum strictly
+monotonically, so it meets `ζ(2)` only at the intended value; the perturbation must give back at
+one prime what it takes at another. The construction moves the first prime from `2` down to
+`√(45/13) ≈ 1.861` and the second from `3` up to `4`, leaving `5, 7, 11, …` unchanged. The two
 Euler factors then satisfy
 
     (1 - 13/45)⁻¹ · (1 - 1/16)⁻¹  =  45/32 · 16/15  =  3/2  =  4/3 · 9/8
                                   =  (1 - 1/4)⁻¹ · (1 - 1/9)⁻¹
 
-so the perturbed series has the same value at `s = 2`. The remaining factor is never computed --
-it is literally the same tsum on both sides, because the two valuations agree from the third
-prime on.
+so the perturbed series takes the same value at `s = 2`. The remaining factor is the same `tsum`
+on both sides, since the two valuations agree from the third prime on, and is never computed.
 -/
 
 namespace ZetaRigidity
@@ -54,8 +54,8 @@ noncomputable def Valuation.shift (v : Valuation) : Valuation where
 
 @[simp] lemma Valuation.shift_apply (v : Valuation) (i : ℕ) : v.shift i = v (i + 1) := rfl
 
-/-- `extend` only reads the values of the valuation, so pointwise-equal valuations extend to the
-same function. This is what lets the two sides of the counterexample share a tail. -/
+/-- `extend` only reads the values of the valuation, so pointwise equal valuations have equal
+extensions. This is how the two sides of the counterexample share a tail. -/
 lemma Valuation.extend_congr {v w : Valuation} (h : ∀ i, v i = w i) (m : FormalProd) :
     v.extend m = w.extend m :=
   Finsupp.prod_congr fun i _ => by rw [h i]
@@ -101,8 +101,8 @@ noncomputable def tailProd (m : FormalProd) : FormalProd :=
 @[simp] lemma expo_tailProd (m : FormalProd) (i : ℕ) : expo (tailProd m) i = expo m (i + 1) :=
   Finsupp.comapDomain_apply _ _ _ _
 
-/-- **Unique factorisation, in the form the Euler product needs.** Every formal product is a
-power of the first prime times a product in the others. -/
+/-- Every formal product is a power of the first prime times a product in the remaining
+primes. -/
 lemma atom_pow_mul_shiftProd_tailProd (m : FormalProd) :
     atom 0 ^ expo m 0 * shiftProd (tailProd m) = m := by
   refine ext_expo fun i => ?_
@@ -110,7 +110,7 @@ lemma atom_pow_mul_shiftProd_tailProd (m : FormalProd) :
   | zero => simp [expo_mul, expo_pow]
   | succ j => simp [expo_mul, expo_pow]
 
-/-- **The splitting.** A formal product is its first-prime exponent together with the rest. -/
+/-- The splitting. A formal product is its first-prime exponent together with the rest. -/
 noncomputable def peelEquiv : FormalProd ≃ ℕ × FormalProd where
   toFun m := (expo m 0, tailProd m)
   invFun p := atom 0 ^ p.1 * shiftProd p.2
@@ -134,9 +134,9 @@ lemma extend_peelEquiv_symm (v : Valuation) (a : ℕ) (m : FormalProd) :
 
 /-! ## The Euler factor
 
-With the splitting in place the Dirichlet sum factors into a geometric series in the first prime
-and the Dirichlet sum of the shifted valuation. Both directions are needed: one to *compute* the
-counterexample's sum, the other to know it converges at all.
+The Dirichlet sum factors into a geometric series in the first prime and the Dirichlet sum of
+the shifted valuation. Both directions of the summability statement are needed: one to evaluate
+the counterexample's sum, the other to show it converges.
 -/
 
 variable {v : Valuation} {s : ℝ}
@@ -155,15 +155,15 @@ lemma peel_summand (v : Valuation) (s : ℝ) (p : ℕ × FormalProd) :
   rw [extend_peelEquiv_symm, Real.mul_rpow (pow_nonneg (v.pos 0).le a) (v.shift.extend_pos m).le,
     rpow_pow_eq_pow_rpow]
 
-/-- The geometric series of the first Euler factor converges exactly when the first prime has
-value `> 1` in the relevant range -- which it does, for every `s > 0`. -/
+/-- The geometric series of the first Euler factor converges for every `s > 0`, since the
+first prime has value greater than `1`. -/
 lemma summable_euler_factor (v : Valuation) (hs : 0 < s) :
     Summable fun a : ℕ => ((v 0 ^ (-s) : ℝ)) ^ a := by
   refine summable_geometric_of_lt_one (Real.rpow_nonneg (v.pos 0).le _) ?_
   rw [Real.rpow_neg (v.pos 0).le, inv_lt_one_iff₀]
   exact Or.inr (Real.one_lt_rpow_iff_of_pos (v.pos 0) |>.mpr (Or.inl ⟨v.one_lt 0, hs⟩))
 
-/-- **Peeling preserves summability downwards.** -/
+/-- Peeling preserves summability downwards. -/
 lemma Summable.peel (h : Summable fun m : FormalProd => v.extend m ^ (-s)) :
     Summable fun m : FormalProd => v.shift.extend m ^ (-s) := by
   have hprod : Summable fun p : ℕ × FormalProd => v.extend (peelEquiv.symm p) ^ (-s) :=
@@ -173,8 +173,8 @@ lemma Summable.peel (h : Summable fun m : FormalProd => v.extend m ^ (-s)) :
   rw [peel_summand]
   simp
 
-/-- **Peeling preserves summability upwards.** This is the direction that establishes the
-counterexample converges: it never mentions the original valuation's sum. -/
+/-- Peeling preserves summability upwards. This direction shows the counterexample converges,
+without reference to the original valuation's sum. -/
 lemma summable_of_peel (hs : 0 < s)
     (h : Summable fun m : FormalProd => v.shift.extend m ^ (-s)) :
     Summable fun m : FormalProd => v.extend m ^ (-s) := by
@@ -184,7 +184,7 @@ lemma summable_of_peel (hs : 0 < s)
   · exact fun m => Real.rpow_nonneg (v.shift.extend_pos m).le _
   · exact (peel_summand v s p).symm
 
-/-- **The Euler factorization, one prime at a time.** -/
+/-- The Euler factorization, one prime at a time. -/
 theorem tsum_peel (hs : 0 < s) (h : Summable fun m : FormalProd => v.extend m ^ (-s)) :
     ∑' m : FormalProd, v.extend m ^ (-s)
       = (∑' a : ℕ, ((v 0 ^ (-s) : ℝ)) ^ a) * ∑' m : FormalProd, v.shift.extend m ^ (-s) := by
@@ -239,7 +239,7 @@ lemma one_lt_badFirst : 1 < badFirst := by
 lemma badFirst_lt_four : badFirst < 4 := by
   nlinarith [badFirst_sq, badFirst_pos]
 
-/-- **A valuation that is not the primes but has the right value at `s = 2`.** It sends the first
+/-- A valuation that is not the primes but has the right value at `s = 2`. It sends the first
 prime to `√(45/13)`, the second to `4`, and every later prime to itself. -/
 noncomputable def badTwo : Valuation where
   toFun i := if i = 0 then badFirst else if i = 1 then 4 else (Nat.nth Nat.Prime i : ℝ)
@@ -283,8 +283,8 @@ lemma badTwo_summable : Summable fun m : FormalProd => badTwo.extend m ^ (-(2 : 
   refine (Summable.peel (Summable.peel primeVal_summable)).congr fun m => ?_
   rw [Valuation.extend_congr badTwo_shift_shift m]
 
-/-- **The sums agree at `s = 2`.** Neither side's tail is ever computed: the two Euler factors
-multiply to `3/2` in both cases, and the remaining factor is shared. -/
+/-- The sums agree at `s = 2`. Neither tail is computed: the two Euler factors multiply to
+`3/2` on both sides, and the remaining factor is the same. -/
 theorem badTwo_tsum_eq_primeVal_tsum :
     (∑' m : FormalProd, badTwo.extend m ^ (-(2 : ℝ)))
       = ∑' m : FormalProd, primeVal.extend m ^ (-(2 : ℝ)) := by
@@ -306,8 +306,8 @@ theorem badTwo_not_isZetaNormalized : ¬ IsZetaNormalized badTwo := by
   rw [h0] at this
   norm_num at this
 
-/-- **Sharpness.** Agreement with ζ at the single point `s = 2` does not force the valuation to
-be the primes. The rigidity theorem's use of *every* integer `≥ 2` is therefore essential. -/
+/-- Agreement with ζ at the single point `s = 2` does not force the valuation to be the
+primes, so the rigidity theorem's use of every integer `≥ 2` is necessary. -/
 theorem exists_not_isZetaNormalized_agreeing_at_two :
     ∃ w : Valuation,
       (Summable fun m : FormalProd => w.extend m ^ (-(2 : ℝ))) ∧

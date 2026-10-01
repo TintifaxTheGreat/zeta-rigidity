@@ -6,41 +6,32 @@ Authors: Eugen Lindorfer
 import ZetaRigidity.Primes
 
 /-!
-# The tame side: multiplication alone sees no individual prime
+# Automorphisms of the monoid of formal products
 
-`ZetaRigidity/Rigidity.lean` proves that the ζ-condition pins the valuation down completely. That
-is only half of a contrast; this file proves the other half, and it is the half that says why the
-first one is worth anything.
+`ZetaRigidity/Rigidity.lean` shows the ζ-condition determines the valuation. This file describes
+the situation without that condition, which is what makes the word "rigidity" meaningful.
 
 ## Main result
 
 `autEquivPerm : MulAut FormalProd ≃* Equiv.Perm ℕ`
 
-The automorphism group of the free commutative monoid is the *full* permutation group of its
-atoms. Every permutation of the abstract primes extends to a symmetry of the whole multiplicative
-structure, and every symmetry arises this way. So in `(ℤ_{>0}, ×)` no individual prime is
-distinguishable from any other by multiplicative means: any statement about "the prime `2`" is
-carried by an automorphism to the same statement about `5`, or about the `10^100`-th prime.
+The automorphism group of the free commutative monoid is the full permutation group of its
+atoms: every permutation of the abstract primes extends to an automorphism, and every
+automorphism arises this way. So multiplication alone does not distinguish one prime from
+another, and any statement about a particular prime transports to the same statement about any
+other. Adding the ζ-condition reduces this symmetry group to the trivial one.
 
-This is what "ζ rigidifies the multiplicative monoid" is a statement *against*. Before the ζ
-condition the symmetry group is as large as it could possibly be; afterwards the valuation is
-unique (`ZetaRigidity/Rigidity.lean`). Nothing in between is available, because a monoid
-isomorphism must carry irreducibles to irreducibles and there is no further structure to preserve.
-
-## Why this file imports nothing analytic
-
-It deliberately depends on `Primes.lean` only. The statement is about the bare monoid, and mixing
-in the recovered order or the concrete model would obscure that the non-rigidity is present
-*before* any numerical content is introduced.
+This file imports `Primes.lean` only. The statement concerns the bare monoid, so the recovered
+order and the concrete model are deliberately not in scope here.
 -/
 
 namespace ZetaRigidity
 
 /-! ## An automorphism permutes the atoms
 
-The key point is that `IsPrimeElt` has an intrinsic characterisation --
-`irreducible_iff_isPrimeElt` in `ZetaRigidity/Primes.lean` -- so it transports along any monoid
-isomorphism even though the isomorphism cannot see the indexing.
+`IsPrimeElt` has an intrinsic characterisation, `irreducible_iff_isPrimeElt` in
+`ZetaRigidity/Primes.lean`, so it transports along any monoid isomorphism even though the
+isomorphism does not see the indexing.
 -/
 
 lemma aut_eq_one_iff (φ : MulAut FormalProd) {m : FormalProd} : φ m = 1 ↔ m = 1 := by
@@ -75,7 +66,7 @@ lemma autIndex_symm_autIndex (φ : MulAut FormalProd) (i : ℕ) :
   apply atom_injective
   rw [← autIndex_spec, ← autIndex_spec, φ.symm_apply_apply]
 
-/-- **An automorphism is a permutation of the primes.** -/
+/-- An automorphism is a permutation of the primes. -/
 noncomputable def toPerm (φ : MulAut FormalProd) : Equiv.Perm ℕ where
   toFun := autIndex φ
   invFun := autIndex φ.symm
@@ -88,9 +79,8 @@ noncomputable def toPerm (φ : MulAut FormalProd) : Equiv.Perm ℕ where
 
 /-! ## Every permutation is an automorphism -/
 
-/-- **A permutation of the primes is an automorphism.** Relabelling the generators of a free
-commutative monoid is a monoid isomorphism -- this is the direction that makes the symmetry group
-as large as possible. -/
+/-- A permutation of the primes is an automorphism: relabelling the generators of a free
+commutative monoid is a monoid isomorphism. -/
 def ofPerm (σ : Equiv.Perm ℕ) : MulAut FormalProd where
   toFun m := Multiplicative.ofAdd (Finsupp.equivMapDomain σ (Multiplicative.toAdd m))
   invFun m := Multiplicative.ofAdd (Finsupp.equivMapDomain σ.symm (Multiplicative.toAdd m))
@@ -128,8 +118,8 @@ to homomorphisms. -/
 lemma aut_ext {φ ψ : MulAut FormalProd} (h : ∀ i, φ (atom i) = ψ (atom i)) : φ = ψ :=
   MulEquiv.toMonoidHom_injective (hom_ext (M := FormalProd) h)
 
-/-- **The automorphism group of the free commutative monoid is the full permutation group of its
-atoms.** -/
+/-- The automorphism group of the free commutative monoid is the full permutation group of its
+atoms. -/
 noncomputable def autEquivPerm : MulAut FormalProd ≃* Equiv.Perm ℕ where
   toFun := toPerm
   invFun := ofPerm
@@ -142,18 +132,15 @@ noncomputable def autEquivPerm : MulAut FormalProd ≃* Equiv.Perm ℕ where
     rw [← autIndex_spec, ← autIndex_spec, ← autIndex_spec]
     rfl
 
-/-! ## What it means
+/-! ## Consequences -/
 
-Two corollaries, stated because they are the sentences the README wants to be able to make.
--/
-
-/-- Any prime can be moved to any other by a symmetry of the multiplicative structure: no
-individual prime is definable from multiplication alone. -/
+/-- Any prime can be moved to any other by an automorphism, so no individual prime is definable
+from multiplication alone. -/
 theorem exists_aut_map_atom (i j : ℕ) : ∃ φ : MulAut FormalProd, φ (atom i) = atom j :=
   ⟨ofPerm (Equiv.swap i j), by rw [ofPerm_atom, Equiv.swap_apply_left]⟩
 
-/-- The symmetry group is not merely large but *maximal*: every relabelling of the primes is
-realized, so multiplication imposes no constraint on how they may be permuted. -/
+/-- Every permutation of the primes is realized by an automorphism, so multiplication imposes
+no constraint on how the primes may be permuted. -/
 theorem toPerm_surjective : Function.Surjective toPerm :=
   fun σ => ⟨ofPerm σ, autEquivPerm.right_inv σ⟩
 

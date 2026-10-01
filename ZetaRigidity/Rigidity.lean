@@ -7,22 +7,22 @@ import ZetaRigidity.Valuation
 import ZetaRigidity.DirichletUniqueness
 
 /-!
-# ζ-rigidity
+# The rigidity theorem
 
-The main theorem: if the Dirichlet series of a valuation agrees with the Riemann zeta function
-at the integers `2, 3, 4, …`, then the valuation is forced -- the `i`-th abstract prime has
-value the `i`-th ordinary prime (`eq_nth_prime_of_isZetaNormalized`), and the formal products
-are carried bijectively and multiplicatively onto the positive integers.
+If the Dirichlet series of a valuation agrees with the Riemann zeta function at the integers
+`2, 3, 4, …`, then the `i`-th abstract prime has value the `i`-th ordinary prime
+(`eq_nth_prime_of_isZetaNormalized`), and the formal products are carried bijectively and
+multiplicatively onto the positive integers.
 
-## What the hypothesis really says
+Agreement is required only at integer arguments, so the values `ζ(2), ζ(3), ζ(4), …` already
+determine the primes.
 
-`IsZetaNormalized v` holds *iff* `v.extend` is a multiplicative bijection onto `ℤ_{>0}`. The
-hypothesis is therefore equivalent to the conclusion; the content is that a Dirichlet series
-determines its exponents, not that ζ mysteriously detects primes. What ζ supplies is the
-multiset `{1, 2, 3, …}`.
+## Limitations
 
-Note also that agreement is only required at integer arguments, so the theorem says: the values
-`ζ(2), ζ(3), ζ(4), …` already determine the primes.
+`IsZetaNormalized v` holds if and only if `v.extend` is a multiplicative bijection onto
+`ℤ_{>0}`; the converse direction is `isZetaNormalized_of_equiv` in `ZetaRigidity/Model.lean`.
+The hypothesis is therefore equivalent to the conclusion. What the theorem establishes is that a
+Dirichlet series determines its exponents. What ζ contributes is the multiset `{1, 2, 3, …}`.
 -/
 
 namespace ZetaRigidity
@@ -74,11 +74,11 @@ structure IsZetaNormalized (v : Valuation) : Prop where
 
 variable {v : Valuation}
 
-/-- **Step 1.** The valuation enumerates the positive integers: there is a bijection from formal
-products to `ℕ` under which the magnitude of `m` is `e m + 1`.
+/-- The valuation enumerates the positive integers: there is a bijection from formal products
+to `ℕ` under which the magnitude of `m` is `e m + 1`.
 
-The ζ-hypothesis is stated with `Real.rpow`, while the uniqueness engine works with ordinary
-powers of the inverses; `rpow_neg_natCast_eq_inv_pow` converts between them. -/
+The ζ-hypothesis is stated with `Real.rpow` while `exists_equiv_of_tsum_pow_eq` works with
+ordinary powers of the inverses; `rpow_neg_natCast_eq_inv_pow` converts between them. -/
 theorem exists_equiv_nat (h : IsZetaNormalized v) :
     ∃ e : FormalProd ≃ ℕ, ∀ m, v.extend m = (e m : ℝ) + 1 := by
   -- Positivity facts for the two families of values.
@@ -111,9 +111,9 @@ theorem exists_equiv_nat (h : IsZetaNormalized v) :
   -- Undo the inversion: equal inverses means equal values.
   exact ⟨e, fun m => inv_injective (he m)⟩
 
-/-- **ζ-rigidity.** Under the normalization condition the `i`-th abstract prime has value the
-`i`-th ordinary prime. Nothing about ordinary addition was assumed: the scale is supplied
-entirely by the analytic identity. -/
+/-- Under the normalization condition the `i`-th abstract prime has value the `i`-th ordinary
+prime. No form of addition is assumed; the numerical scale comes entirely from the analytic
+identity. -/
 theorem eq_nth_prime_of_isZetaNormalized (h : IsZetaNormalized v) (i : ℕ) :
     v i = (Nat.nth Nat.Prime i : ℝ) := by
   obtain ⟨e, he⟩ := exists_equiv_nat h

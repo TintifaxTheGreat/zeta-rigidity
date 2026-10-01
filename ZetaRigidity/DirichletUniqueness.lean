@@ -11,31 +11,26 @@ import Mathlib
 A family of reals in `(0, 1]` is determined, as a multiset, by its power sums `∑ᵢ xᵢ ⁿ` for
 `n ≥ 2`. This is the analytic engine of the ζ-rigidity theorem.
 
-## Why natural powers
+## Natural powers rather than `rpow`
 
 The ζ-hypothesis is imposed only at the integer arguments `s = 2, 3, 4, …`, so substituting
-`xᵢ = (value)⁻¹` turns the Dirichlet series into ordinary power sums. That removes `Real.rpow`
-from the whole argument, which matters in practice: `Monoid.npow` has far better `simp`, `gcongr`
-and `positivity` support. `ZetaRigidity/Rigidity.lean` does the conversion with
-`rpow_neg_natCast_eq_inv_pow`.
+`xᵢ = (value)⁻¹` turns the Dirichlet series into ordinary power sums and removes `Real.rpow`
+from the argument. `Monoid.npow` has better `simp`, `gcongr` and `positivity` support.
+`ZetaRigidity/Rigidity.lean` performs the conversion with `rpow_neg_natCast_eq_inv_pow`.
 
-## Why this cannot be taken from Mathlib
+## Relation to Mathlib
 
-`Mathlib/NumberTheory/LSeries/Injectivity.lean` runs exactly this argument
-(`LSeries.tendsto_cpow_mul_atTop`: the dominant term dominates as `s → ∞`), but only for series
-indexed by `ℕ` whose exponents *are* the index. Here the values are unknown -- determining them
-is the theorem -- so that file is a template to imitate, not a result to apply.
+`Mathlib/NumberTheory/LSeries/Injectivity.lean` runs the same argument
+(`LSeries.tendsto_cpow_mul_atTop`, the dominant term dominating as `s → ∞`), but only for series
+indexed by `ℕ` whose exponents are the index. Here the values are unknown, which is what the
+theorem determines, so that file is imitated rather than applied.
 
-## Contents
+## Main results
 
-* local finiteness, which gives the multiset of values a greatest element;
-* `exists_equiv_of_mult_eq` -- equal multiplicities assemble fibrewise into a bijection;
-* `tendsto_tsum_pow` -- the dominant term dominates: power sums converge to the multiplicity
-  of the largest value;
-* `mult_eq_mult` -- equal power sums force equal multiplicities, by minimal counterexample;
-* `exists_equiv_of_tsum_pow_eq` -- the theorem used downstream.
-
-Complete, with no `sorry`.
+* `exists_equiv_of_mult_eq`: equal multiplicities assemble fibrewise into a bijection.
+* `tendsto_tsum_pow`: power sums converge to the multiplicity of the largest value.
+* `mult_eq_mult`: equal power sums force equal multiplicities, proved by minimal counterexample.
+* `exists_equiv_of_tsum_pow_eq`: the statement used by `ZetaRigidity/Rigidity.lean`.
 -/
 
 namespace ZetaRigidity
@@ -44,8 +39,8 @@ open Filter
 
 /-! ## Local finiteness
 
-Summability makes the value family locally finite, which is what gives the multiset of values a
-least element -- the hook the whole argument hangs on.
+Summability makes the family of values locally finite, which gives the multiset of values a
+least element. The rest of the argument depends on that.
 -/
 
 /-- A summable family exceeds any positive threshold only finitely often. -/
@@ -123,7 +118,7 @@ theorem tsum_indicator_eq_card {ι : Type*} {z : ι → ℝ} (hA : {i | z i = 1}
   rw [tsum_eq_sum hzero, Finset.sum_congr rfl hone, Finset.sum_const, nsmul_eq_mul, mul_one,
     hcard]
 
-/-- **The dominant term dominates.** For a family in `(0, 1]` with summable squares, the power
+/-- The dominant term dominates. For a family in `(0, 1]` with summable squares, the power
 sums converge to the multiplicity of the value `1`. Proved by Tannery's theorem: `zᵢ ^ 2`
 dominates `zᵢ ^ n` for `n ≥ 2`, and pointwise `zᵢ ^ n → 1` or `0` according as `zᵢ = 1`. -/
 theorem tendsto_tsum_pow {ι : Type*} {z : ι → ℝ} (hz0 : ∀ i, 0 < z i) (hz1 : ∀ i, z i ≤ 1)
@@ -325,7 +320,7 @@ theorem mult_eq_mult {ι κ : Type*} {x : ι → ℝ} {y : κ → ℝ}
 
 /-! ## The theorem used downstream -/
 
-/-- **Uniqueness for power sums.** Two families in `(0, 1]` whose power sums agree from exponent
+/-- Uniqueness for power sums. Two families in `(0, 1]` whose power sums agree from exponent
 `2` onwards are the same family up to a relabelling of the index set. -/
 theorem exists_equiv_of_tsum_pow_eq {ι κ : Type*} {x : ι → ℝ} {y : κ → ℝ}
     (hx0 : ∀ i, 0 < x i) (hx1 : ∀ i, x i ≤ 1) (hy0 : ∀ k, 0 < y k) (hy1 : ∀ k, y k ≤ 1)

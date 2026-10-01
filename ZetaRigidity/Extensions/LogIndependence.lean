@@ -4,33 +4,33 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eugen Lindorfer
 -/
 import ZetaRigidity.Model
+import ZetaRigidity.Extensions.ValuationExtras
 
 /-!
-# The primes are a basis: `{log p}` is linearly independent over `ℚ`
+# Linear independence of `{log p}` over `ℚ`
 
-`FormalProd` is a free commutative **monoid**, not a vector space -- it has no inverses and its
-scalars are `ℕ`. The genuinely linear object attached to the construction appears after taking
-logarithms. `Valuation.log_extend` (`ZetaRigidity/Valuation.lean`) says `log ∘ extend` is linear
-in the exponent vector, and this file supplies the missing half: for the rational primes those
-coordinates are *independent*, so the primes form a basis of a `ℚ`-vector space inside `ℝ`.
+`FormalProd` is a free commutative monoid, not a vector space: it has no inverses and its
+scalars are `ℕ`. A linear object appears after taking logarithms.
+`Valuation.log_extend` (`ZetaRigidity/Extensions/ValuationExtras.lean`) shows `log ∘ extend` is
+linear in the exponent vector, and this file shows that for the rational primes the coordinates
+are independent, so the `log p` form a basis of a `ℚ`-vector space inside `ℝ`.
 
 ## Main result
 
 `linearIndependent_log_primes : LinearIndependent ℚ (fun i : ℕ => Real.log (Nat.nth Nat.Prime i))`
 
-Not in Mathlib. It belongs here because the one substantive step is `val_injective`
-(`ZetaRigidity/Model.lean`) -- that is, unique factorisation, which this development has
-definitionally.
+This is not in Mathlib. It is proved here because the substantive step is `val_injective`
+(`ZetaRigidity/Model.lean`), which is unique factorisation.
 
-## Method
+## Proof outline
 
-Prove the `ℤ` statement and promote it: `LinearIndependent.iff_fractionRing ℤ ℚ` applies to `ℝ`
-directly, so no denominators have to be cleared by hand.
+The `ℤ` statement is proved first and promoted by `LinearIndependent.iff_fractionRing ℤ ℚ`,
+which applies to `ℝ` directly, so no denominators are cleared by hand.
 
 For the `ℤ` statement, a relation `∑ lᵢ · log pᵢ = 0` is split into its positive and negative
-parts, giving two honest formal products `m⁺` and `m⁻` with `log (val m⁺) = log (val m⁻)`. Since
-`log` is injective on positives this forces `val m⁺ = val m⁻`, and `val_injective` then gives
-`m⁺ = m⁻`. Comparing exponents, `(lᵢ).toNat = (-lᵢ).toNat`, which forces `lᵢ = 0`.
+parts, giving two formal products `m⁺` and `m⁻` with `log (val m⁺) = log (val m⁻)`. Since `log`
+is injective on positives this gives `val m⁺ = val m⁻`, and `val_injective` gives `m⁺ = m⁻`.
+Comparing exponents, `(lᵢ).toNat = (-lᵢ).toNat`, so `lᵢ = 0`.
 -/
 
 namespace ZetaRigidity
@@ -56,7 +56,7 @@ private lemma log_val_eq_sum (m : FormalProd) {s : Finset ℕ}
   rw [coe_val, primeVal.log_extend]
   exact Finsupp.sum_of_support_subset _ hs _ (fun i _ => by simp)
 
-/-- **Linear independence over `ℤ`.** This is where unique factorisation is used. -/
+/-- Linear independence over `ℤ`. Unique factorisation is used in the step `val_injective`. -/
 theorem linearIndependent_int_log_primes :
     LinearIndependent ℤ (fun i : ℕ => Real.log (Nat.nth Nat.Prime i)) := by
   rw [linearIndependent_iff]
@@ -97,9 +97,8 @@ theorem linearIndependent_int_log_primes :
   simp only [Finsupp.neg_apply, Finsupp.coe_zero, Pi.zero_apply] at hexp ⊢
   omega
 
-/-- **The primes are a basis.** Over `ℚ` -- and hence the `ℚ`-span of `{log p}` inside `ℝ` is a
-vector space with the `log p` as a basis, which is the honest linear object attached to this
-construction. `FormalProd` itself is only a monoid. -/
+/-- Linear independence over `ℚ`, so the `ℚ`-span of `{log p}` inside `ℝ` has the `log p` as a
+basis. -/
 theorem linearIndependent_log_primes :
     LinearIndependent ℚ (fun i : ℕ => Real.log (Nat.nth Nat.Prime i)) :=
   (LinearIndependent.iff_fractionRing ℤ ℚ).mp linearIndependent_int_log_primes

@@ -7,23 +7,21 @@ import ZetaRigidity.Rigidity
 import ZetaRigidity.Model
 
 /-!
-# The hypothesis really is agreement with `riemannZeta`
+# The hypothesis stated with `riemannZeta`
 
 `IsZetaNormalized` (`ZetaRigidity/Rigidity.lean`) is stated against the explicit sum
-`∑' n, ((n : ℝ) + 1) ^ (-k)`. That is ζ at the integer points, but saying so is a claim about
-Mathlib's `riemannZeta`, and until it is proved the connection is a reader's inference rather than
-a machine-checked one. This file closes that gap.
+`∑' n, ((n : ℝ) + 1) ^ (-k)`. This file proves that sum equals Mathlib's `riemannZeta` at
+integer arguments, so the connection is checked rather than assumed.
 
 ## Main results
 
-* `ofReal_tsum_natSucc_eq_riemannZeta` -- the explicit sum, cast to `ℂ`, *is* `riemannZeta k`.
-* `IsZetaNormalized.agrees_riemannZeta` -- so the hypothesis says exactly what it claims to say.
-* `IsZetaNormalized.of_riemannZeta` -- and conversely, the `riemannZeta` phrasing suffices to
-  establish it, so downstream users may state the condition either way.
-* `eq_nth_prime_of_riemannZeta` -- the headline theorem with `riemannZeta` in its statement.
+* `ofReal_tsum_natSucc_eq_riemannZeta`: the explicit sum, cast to `ℂ`, equals `riemannZeta k`.
+* `IsZetaNormalized.agrees_riemannZeta` and `IsZetaNormalized.of_riemannZeta`: the two phrasings
+  of the hypothesis are interchangeable.
+* `eq_nth_prime_of_riemannZeta`: the rigidity theorem with `riemannZeta` in its statement.
 
-Everything is at integer arguments only, which is why `Complex.cpow` appears just long enough to
-quote Mathlib and is then discharged by `Complex.cpow_natCast`.
+All arguments are integers, so `Complex.cpow` appears only to quote Mathlib and is discharged by
+`Complex.cpow_natCast`.
 -/
 
 namespace ZetaRigidity
@@ -42,11 +40,11 @@ lemma riemannZeta_nat_eq_tsum_inv_pow {k : ℕ} (hk : 1 < k) :
   rw [zeta_eq_tsum_one_div_nat_add_one_cpow hre]
   exact tsum_congr fun n => by rw [cpow_natCast, one_div]
 
-/-- The real sum appearing in `IsZetaNormalized.agrees` is `riemannZeta k`.
+/-- The real sum appearing in `IsZetaNormalized.agrees` equals `riemannZeta k`.
 
-The route is: rewrite the negative real power as an inverse natural power
-(`rpow_neg_natCast_eq_inv_pow`), push the cast through the `tsum` (`Complex.ofReal_tsum`), and
-compare with `riemannZeta_nat_eq_tsum_inv_pow`. -/
+The proof rewrites the negative real power as an inverse natural power
+(`rpow_neg_natCast_eq_inv_pow`), pushes the cast through the `tsum` (`Complex.ofReal_tsum`), and
+compares with `riemannZeta_nat_eq_tsum_inv_pow`. -/
 theorem ofReal_tsum_natSucc_eq_riemannZeta {k : ℕ} (hk : 1 < k) :
     ((∑' n : ℕ, ((n : ℝ) + 1) ^ (-(k : ℝ)) : ℝ) : ℂ) = riemannZeta k := by
   rw [riemannZeta_nat_eq_tsum_inv_pow hk, Complex.ofReal_tsum]
@@ -60,7 +58,7 @@ theorem ofReal_tsum_natSucc_eq_riemannZeta {k : ℕ} (hk : 1 < k) :
 
 variable {v : Valuation}
 
-/-- **The ζ-hypothesis is agreement with `riemannZeta`.** -/
+/-- The ζ-hypothesis is agreement with `riemannZeta`. -/
 theorem IsZetaNormalized.agrees_riemannZeta (h : IsZetaNormalized v) {k : ℕ} (hk : 2 ≤ k) :
     ((∑' m : FormalProd, v.extend m ^ (-(k : ℝ)) : ℝ) : ℂ) = riemannZeta k := by
   rw [h.agrees k hk]
@@ -78,7 +76,7 @@ theorem IsZetaNormalized.of_riemannZeta
     have h := (hz k hk).trans (ofReal_tsum_natSucc_eq_riemannZeta (k := k) (by omega)).symm
     exact_mod_cast h
 
-/-- **ζ-rigidity, with ζ in the statement.** If the Dirichlet series of `v` agrees with the
+/-- ζ-rigidity, with ζ in the statement. If the Dirichlet series of `v` agrees with the
 Riemann zeta function at every integer `≥ 2`, then the `i`-th abstract prime has value the `i`-th
 ordinary prime. -/
 theorem eq_nth_prime_of_riemannZeta
@@ -90,11 +88,12 @@ theorem eq_nth_prime_of_riemannZeta
 
 /-! ## Non-vacuity
 
-The same check as `primeVal_isZetaNormalized` (`ZetaRigidity/Model.lean`), but for the
-`riemannZeta` phrasing: the intended valuation satisfies it, so the theorem above is not vacuous.
+The check of `primeVal_isZetaNormalized` (`ZetaRigidity/Model.lean`), repeated for the
+`riemannZeta` phrasing, so that the theorem above is not vacuous.
 -/
 
-/-- The intended valuation's Dirichlet series *is* the Riemann zeta function at the integers. -/
+/-- The intended valuation's Dirichlet series equals the Riemann zeta function at the
+integers. -/
 theorem primeVal_agrees_riemannZeta {k : ℕ} (hk : 2 ≤ k) :
     ((∑' m : FormalProd, primeVal.extend m ^ (-(k : ℝ)) : ℝ) : ℂ) = riemannZeta k :=
   primeVal_isZetaNormalized.agrees_riemannZeta hk

@@ -8,25 +8,24 @@ import Mathlib
 /-!
 # Abstract primes and formal products
 
-The starting point of the ζ-rigidity construction: an abstract set of primes equipped with a
-distinguished least element, a successor, and an induction principle -- that is, exactly the
-Peano axioms, which is what "order type ω" amounts to.
+This file sets up the objects the rigidity theorem is about.
 
-The first result of this file is that such a structure carries no information: any `P` satisfying
-these axioms is in bijection with `ℕ` (`PrimeSequence.equivNat`). We therefore state the axioms
-once, discharge them once, and work concretely with `ℕ` from then on, rather than paying for the
-abstraction in every downstream proof.
+A `PrimeSequence` is an abstract set of primes with a least element, a successor and an induction
+principle. These are the Peano axioms, so they fix the order type to ω and nothing else.
+`PrimeSequence.equivNat` shows that any such structure is in bijection with `ℕ`, so the axioms
+are stated and discharged once and the rest of the development works with `ℕ`.
 
-From the primes we build `FormalProd`, the free commutative monoid of finite formal products.
-Multiplication is primitive and unique factorisation is *definitional*: an element simply **is**
-its exponent vector.
+`FormalProd` is the free commutative monoid on the primes. An element is its exponent vector, so
+multiplication is the primitive operation and unique factorisation holds by definition. Two
+exponent vectors that differ are different elements even if a valuation later assigns them the
+same real number; in the theory of generalized prime systems this is the convention that the
+generalized integers form a multiset.
 
-That last point is not merely convenient, it is the standard convention in the theory of
-Beurling generalized primes, where `FormalProd` is the *arithmetical semigroup* of generalized
-integers (Knopfmacher). Because the primes are unknown reals, two different exponent vectors can
-have the same numerical value; the generalized integers are therefore a **multiset**, indexed by
-exponent vectors rather than by their values. `Multiplicative (ℕ →₀ ℕ)` encodes exactly that.
-See `ZetaRigidity/Valuation.lean` for the rest of the correspondence.
+## Main results
+
+* `PrimeSequence.equivNat`: the prime axioms determine the index set up to bijection.
+* `irreducible_iff_isPrimeElt`: the atoms are exactly the irreducible elements.
+* `lift` and `hom_ext`: the universal property of the free commutative monoid.
 -/
 
 namespace ZetaRigidity
@@ -77,8 +76,8 @@ lemma ofNat_surjective : Function.Surjective hP.ofNat := by
   rintro p ⟨n, rfl⟩
   exact ⟨n + 1, rfl⟩
 
-/-- **Any abstract prime sequence is just `ℕ`.** The axioms of `PrimeSequence` carry no
-information beyond the order type, so nothing is lost by working with `ℕ` downstream. -/
+/-- Any abstract prime sequence is in bijection with `ℕ`. The axioms carry no information
+beyond the order type, so nothing is lost by working with `ℕ` downstream. -/
 noncomputable def equivNat : ℕ ≃ P :=
   Equiv.ofBijective hP.ofNat ⟨hP.ofNat_injective, hP.ofNat_surjective⟩
 
@@ -94,9 +93,9 @@ def natPrimeSequence : PrimeSequence ℕ where
 
 /-! ## Formal products
 
-The free commutative monoid on the primes. An element is a finitely-supported exponent vector;
-multiplication of formal products is addition of exponents, so we wrap in `Multiplicative` to
-keep multiplication -- the primitive operation of the whole construction -- written as `*`.
+The free commutative monoid on the primes. An element is a finitely supported exponent vector.
+Multiplication of formal products is addition of exponents, so the type is wrapped in
+`Multiplicative` to keep the primitive operation written as `*`.
 -/
 
 /-- Finite formal products of abstract primes: the free commutative monoid on `ℕ`. -/
@@ -120,7 +119,8 @@ def expo (m : FormalProd) (i : ℕ) : ℕ := Multiplicative.toAdd m i
   | zero => simp
   | succ n ih => rw [pow_succ, expo_mul, ih]; ring
 
-/-- Formal products are determined by their exponents: unique factorisation, definitionally. -/
+/-- Formal products are determined by their exponents. This is unique factorisation, holding by
+definition rather than as a theorem. -/
 lemma ext_expo {m n : FormalProd} (h : ∀ i, expo m i = expo n i) : m = n :=
   Multiplicative.toAdd.injective (Finsupp.ext h)
 
@@ -129,9 +129,8 @@ lemma atom_injective : Function.Injective atom := fun _ _ h =>
 
 /-! ### Degree
 
-The total number of prime factors, with multiplicity. This is the tool for showing that the
-atoms really are atoms -- needed later to see that a multiplicative bijection onto `ℤ_{>0}`
-must carry abstract primes to ordinary primes.
+The number of prime factors, with multiplicity. Used to show the atoms are irreducible, which in
+turn shows a multiplicative bijection onto `ℤ_{>0}` carries abstract primes to ordinary primes.
 -/
 
 /-- The total number of prime factors of a formal product, counted with multiplicity. -/
@@ -172,8 +171,7 @@ lemma exists_expo_pos {m : FormalProd} (hm : m ≠ 1) : ∃ i, 0 < expo m i := b
   push Not at h
   exact hm (ext_expo fun i => by simpa using Nat.le_zero.mp (h i))
 
-/-- The atoms are irreducible: a formal product equal to a single prime has a trivial factor.
-This is unique factorisation doing its work. -/
+/-- If a product of two formal products is an atom, one of the factors is empty. -/
 lemma eq_one_or_eq_one_of_mul_eq_atom {m n : FormalProd} {i : ℕ} (h : m * n = atom i) :
     m = 1 ∨ n = 1 := by
   have hd : degree m + degree n = 1 := by rw [← degree_mul, h, degree_atom]
@@ -181,15 +179,15 @@ lemma eq_one_or_eq_one_of_mul_eq_atom {m n : FormalProd} {i : ℕ} (h : m * n = 
   · exact Or.inl (degree_eq_zero_iff.mp h0)
   · exact Or.inr (degree_eq_zero_iff.mp (by omega))
 
-/-! ## Atoms, intrinsically
+/-! ## Atoms without reference to the indexing
 
-`IsPrimeElt` says "is one of the abstract primes" by naming an index. The two lemmas below
-characterise the same class without reference to the indexing -- by degree, and by irreducibility
-in the monoid. The second is what lets an automorphism be seen to permute the primes: an
-isomorphism cannot see indices, but it does preserve irreducibility.
+`IsPrimeElt` identifies an atom by naming its index. The two lemmas below characterise the same
+elements intrinsically, by degree and by irreducibility. The second is what lets an automorphism
+be seen to permute the primes: an isomorphism does not see indices, but it preserves
+irreducibility.
 -/
 
-/-- A prime element is one of the abstract primes -- an atom of the monoid. -/
+/-- A prime element is an atom of the monoid, that is, one of the abstract primes. -/
 def IsPrimeElt (m : FormalProd) : Prop := ∃ i, m = atom i
 
 lemma isPrimeElt_atom (i : ℕ) : IsPrimeElt (atom i) := ⟨i, rfl⟩
@@ -216,9 +214,8 @@ lemma isUnit_iff {m : FormalProd} : IsUnit m ↔ m = 1 := by
   rw [← hu]
   exact degree_eq_zero_iff.mp (by omega)
 
-/-- **The atoms are exactly the irreducible elements.** This is the intrinsic description: it
-mentions neither the indexing of the primes nor their degree, so it transports along any monoid
-isomorphism. -/
+/-- The atoms are exactly the irreducible elements. This description mentions neither the
+indexing nor the degree, so it transports along any monoid isomorphism. -/
 lemma irreducible_iff_isPrimeElt {m : FormalProd} : Irreducible m ↔ IsPrimeElt m := by
   constructor
   · rintro ⟨hu, hfac⟩
@@ -239,10 +236,8 @@ lemma irreducible_iff_isPrimeElt {m : FormalProd} : Irreducible m ↔ IsPrimeElt
 `FormalProd` is free on the atoms: a monoid homomorphism out of it may be prescribed arbitrarily
 on the atoms, and is then determined. Mathlib has no `FreeCommMonoid`, so this is stated here.
 
-Several constructions in this development are instances of `lift`: `Valuation.extend`
-(`ZetaRigidity/Valuation.lean`) is the lift of the prime values into `ℝ`, and the characters of
-`ZetaRigidity/Characters.lean` are lifts into the circle group. The corresponding uniqueness
-statement `hom_ext` is what makes `autEquivPerm` work.
+`Valuation.extend` and the characters of `ZetaRigidity/Extensions/Characters.lean` are both
+instances of `lift`, and `autEquivPerm` is proved using `hom_ext`.
 -/
 
 /-- A single prime power, as a power of an atom. -/
@@ -254,8 +249,7 @@ lemma ofAdd_single (i k : ℕ) :
 
 variable {M : Type*} [CommMonoid M]
 
-/-- **The universal property of the free commutative monoid.** Any assignment of values to the
-abstract primes extends to a monoid homomorphism. -/
+/-- Any assignment of values to the abstract primes extends to a monoid homomorphism. -/
 noncomputable def lift (z : ℕ → M) : FormalProd →* M where
   toFun m := (Multiplicative.toAdd m).prod fun i k => z i ^ k
   map_one' := by simp
@@ -265,8 +259,8 @@ noncomputable def lift (z : ℕ → M) : FormalProd →* M where
   change (Finsupp.single i 1).prod (fun j k => z j ^ k) = z i
   rw [Finsupp.prod_single_index] <;> simp
 
-/-- **Uniqueness.** Two homomorphisms agreeing on the atoms are equal: a formal product is a
-product of atoms, so nothing else is free to differ. -/
+/-- Two homomorphisms that agree on the atoms are equal, since every formal product is a
+product of atoms. -/
 lemma hom_ext {f g : FormalProd →* M} (h : ∀ i, f (atom i) = g (atom i)) : f = g := by
   refine MonoidHom.ext fun m => ?_
   suffices hall : ∀ p : ℕ →₀ ℕ, f (Multiplicative.ofAdd p) = g (Multiplicative.ofAdd p) from
