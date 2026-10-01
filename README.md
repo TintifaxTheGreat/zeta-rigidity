@@ -131,17 +131,6 @@ Definitions follow Beurling, *Analyse de la loi asymptotique de la distribution 
 premiers généralisés*, Acta Math. **68** (1937), 255–291; H. G. Diamond, *J. Number Theory* **1**
 (1969); and Knopfmacher's arithmetical semigroups.
 
-## Testing
-
-`val` and `Valuation.extend` are noncomputable, so `#eval` is unavailable and examples are
-checked as proofs. The `@[simp]` rules `val_one`, `val_mul`, `val_atom` and `val_pow` let `simp`
-and `norm_num` evaluate `val` on any concrete formal product.
-
-Tests are written so that they could fail. `val_example` and `extend_example` compute the same
-number by two separately defined routes that meet only at `coe_val`.
-`badVal_not_isZetaNormalized` shows the hypothesis excludes something. The tests for
-`add_definable` accept `2 + 3 = 5` and reject `2 + 3 = 6` through the identity itself.
-
 ## Building
 
 ```sh
