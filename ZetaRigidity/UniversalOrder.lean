@@ -3,7 +3,8 @@ Copyright (c) 2026 Eugen Lindorfer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eugen Lindorfer
 -/
-import ZetaRigidity.Valuation
+import ZetaRigidity.Model
+import ZetaRigidity.DirichletUniqueness
 
 /-!
 # The order the construction determines on its own
@@ -298,5 +299,75 @@ theorem not_universallyLE_mul :
   · intro h
     have := universallyLE_iff.mp h 2
     simp at this
+
+/-! ## Local finiteness does not determine the order
+
+One might hope that strengthening the hypothesis would close the gap: ask for a *total* order
+with strictly monotone multiplication, increasing atoms, and order type ω, meaning finitely many
+elements below any bound. That is still not enough.
+
+The witness is the system whose atoms are the primes from the second on, `3, 5, 7, 11, …`. Its
+values are `1, 3, 5, 7, 9, 11, …`, so it is locally finite, and multiplication is monotone
+because it is ordinary multiplication of reals. But it puts `p₀² = 9` above `p₂ = 7`, while the
+ordinary primes put `p₀² = 4` below `p₂ = 5`. An isomorphism of ordered monoids must carry atoms
+to atoms in order, so the two orders are not isomorphic.
+
+What separates `ℤ_{>0}` is that its values have no gaps, and that is exactly the bijection
+condition `isZetaNormalized_of_equiv` in `ZetaRigidity/Model.lean`, already equivalent to the
+ζ-condition.
+-/
+
+/-- A valuation summable at `s = 2` has finitely many formal products below any bound, so the
+order it induces has type ω. -/
+lemma finite_below {v : Valuation}
+    (hv : Summable fun m : FormalProd => v.extend m ^ (-2 : ℝ)) (x : ℝ) :
+    {m : FormalProd | v.extend m ≤ x}.Finite := by
+  rcases le_or_gt x 0 with hx | hx
+  · refine Set.Finite.subset (Set.finite_empty) fun m hm => ?_
+    exact absurd (le_trans hm hx) (not_le.mpr (v.extend_pos m))
+  · refine Set.Finite.subset (finite_above hv (Real.rpow_pos_of_pos hx (-2))) fun m hm => ?_
+    have hle : v.extend m ≤ x := hm
+    exact Real.rpow_le_rpow_of_nonpos (v.extend_pos m) hle (by norm_num)
+
+/-- The generalized prime system whose atoms are the primes from the second on. -/
+noncomputable def shiftedVal : Valuation where
+  toFun i := (Nat.nth Nat.Prime (i + 1) : ℝ)
+  one_lt' i := by exact_mod_cast (nth_prime_prime (i + 1)).one_lt
+  strictMono' _ _ h :=
+    Nat.cast_lt.mpr (Nat.nth_strictMono primes_infinite (by omega))
+
+@[simp] lemma shiftedVal_apply (i : ℕ) : shiftedVal i = (Nat.nth Nat.Prime (i + 1) : ℝ) := rfl
+
+lemma primeVal_le_shiftedVal (i : ℕ) : primeVal i ≤ shiftedVal i := by
+  simp only [shiftedVal_apply]
+  have : primeVal i = (Nat.nth Nat.Prime i : ℝ) := rfl
+  rw [this]
+  exact_mod_cast (Nat.nth_strictMono primes_infinite (Nat.lt_succ_self i)).le
+
+/-- Summability for the shifted system, by comparison with the ordinary primes rather than from
+scratch. -/
+lemma shiftedVal_summable :
+    Summable fun m : FormalProd => shiftedVal.extend m ^ (-2 : ℝ) := by
+  refine Summable.of_nonneg_of_le (fun m => Real.rpow_nonneg (shiftedVal.extend_pos m).le _)
+    (fun m => ?_) primeVal_isZetaNormalized.summable
+  exact Real.rpow_le_rpow_of_nonpos (primeVal.extend_pos m)
+    (Valuation.extend_mono primeVal_le_shiftedVal m) (by norm_num)
+
+/-- Local finiteness, monotone multiplication and increasing atoms do not force the ordinary
+primes: `shiftedVal` satisfies all three and orders `atom 2` against `atom 0 ^ 2` the opposite
+way round. -/
+theorem exists_locallyFinite_order_ne_primes :
+    ∃ w : Valuation,
+      (∀ x : ℝ, {m : FormalProd | w.extend m ≤ x}.Finite) ∧
+      ∃ m n : FormalProd, w.extend m < w.extend n ∧ primeVal.extend n < primeVal.extend m := by
+  refine ⟨shiftedVal, fun x => finite_below shiftedVal_summable x, atom 2, atom 0 ^ 2, ?_, ?_⟩
+  · rw [Valuation.extend_atom, map_pow, Valuation.extend_atom, shiftedVal_apply,
+      shiftedVal_apply]
+    rw [show Nat.nth Nat.Prime 3 = 7 from Nat.nth_prime_three_eq_seven,
+      show Nat.nth Nat.Prime 1 = 3 from Nat.nth_prime_one_eq_three]
+    norm_num
+  · rw [Valuation.extend_atom, map_pow, Valuation.extend_atom]
+    simp only [primeVal, Nat.nth_prime_zero_eq_two, Nat.nth_prime_two_eq_five]
+    norm_num
 
 end ZetaRigidity

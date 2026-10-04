@@ -21,6 +21,12 @@ automorphism arises this way. So multiplication alone does not distinguish one p
 another, and any statement about a particular prime transports to the same statement about any
 other. Adding the ζ-condition reduces this symmetry group to the trivial one.
 
+One consequence is worth stating separately. Any construction definable from the multiplicative
+structure alone -- a graph on formal products, for instance -- is preserved by every
+automorphism, so by the above it has every permutation of the primes among its symmetries and
+cannot distinguish one prime from another. `iff_atom_of_aut_invariant` and
+`rel_atom_iff_of_aut_invariant` at the end of the file record this.
+
 This file imports `Primes.lean` only. The statement concerns the bare monoid, so the recovered
 order and the concrete model are deliberately not in scope here.
 -/
@@ -143,5 +149,32 @@ theorem exists_aut_map_atom (i j : ℕ) : ∃ φ : MulAut FormalProd, φ (atom i
 no constraint on how the primes may be permuted. -/
 theorem toPerm_surjective : Function.Surjective toPerm :=
   fun σ => ⟨ofPerm σ, autEquivPerm.right_inv σ⟩
+
+/-- A property preserved by automorphisms cannot tell one prime from another. -/
+theorem iff_atom_of_aut_invariant {P : FormalProd → Prop}
+    (hP : ∀ (φ : MulAut FormalProd) m, P m → P (φ m)) (i j : ℕ) :
+    P (atom i) ↔ P (atom j) := by
+  constructor
+  · intro h
+    obtain ⟨φ, hφ⟩ := exists_aut_map_atom i j
+    exact hφ ▸ hP φ _ h
+  · intro h
+    obtain ⟨φ, hφ⟩ := exists_aut_map_atom j i
+    exact hφ ▸ hP φ _ h
+
+/-- The same for a binary relation, which is the case that applies to graphs: a relation
+preserved by automorphisms is unchanged by relabelling the primes. Any graph whose edge relation
+is definable from the multiplicative structure is of this kind, so it has every permutation of
+the primes among its symmetries and cannot single one out. -/
+theorem rel_atom_iff_of_aut_invariant {E : FormalProd → FormalProd → Prop}
+    (hE : ∀ (φ : MulAut FormalProd) m n, E m n → E (φ m) (φ n)) (σ : Equiv.Perm ℕ) (i j : ℕ) :
+    E (atom i) (atom j) ↔ E (atom (σ i)) (atom (σ j)) := by
+  constructor
+  · intro h
+    have := hE (ofPerm σ) _ _ h
+    rwa [ofPerm_atom, ofPerm_atom] at this
+  · intro h
+    have := hE (ofPerm σ.symm) _ _ h
+    rwa [ofPerm_atom, ofPerm_atom, Equiv.symm_apply_apply, Equiv.symm_apply_apply] at this
 
 end ZetaRigidity
