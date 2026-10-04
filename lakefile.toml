@@ -1,5 +1,5 @@
 name = "zeta-rigidity"
-version = "0.1.0"
+version = "0.2.0"
 description = "A rigidity theorem: a valuation whose Dirichlet series matches the Riemann zeta function must be the ordinary primes."
 keywords = [
   "math",

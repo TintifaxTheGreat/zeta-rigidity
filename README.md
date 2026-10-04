@@ -64,6 +64,15 @@ so every permutation of the abstract primes extends to an automorphism of the mo
 automorphism arises this way. Multiplication alone therefore does not distinguish one prime from
 another. The ζ-condition reduces this symmetry group to the trivial one.
 
+Restoring the indexing of the primes fixes part of the ordering but not all of it.
+`universallyLE_iff` (`ZetaRigidity/UniversalOrder.lean`) identifies exactly which comparisons
+hold in every valuation: `v.extend m ≤ v.extend n` for all `v` precisely when, for every `j`,
+`m` has at most as many prime factors of index `≥ j` as `n` does. This order lies strictly
+between divisibility and a total order. In particular `not_universallyLE_mul` shows `p₀ · p₁`
+and `p₂` are incomparable: the ordinary primes give `6 > 5`, while `stepVal 2 1`, which jumps at
+the third prime, gives `e³ < e⁴`. Both witnesses are in `ZetaRigidity/Examples.lean`. A total
+order has to come from outside, and the ζ-condition is what supplies it.
+
 ## Limitations
 
 **The hypothesis is equivalent to the conclusion.** `∑ₘ V(m)^(-s) = ζ(s)` holds if and only if
@@ -98,6 +107,7 @@ The main line, in dependency order:
 | `ZetaRigidity/Zeta.lean` | The statement against Mathlib's `riemannZeta`. |
 | `ZetaRigidity/Sharpness.lean` | One zeta value does not suffice. |
 | `ZetaRigidity/Automorphisms.lean` | `autEquivPerm`. |
+| `ZetaRigidity/UniversalOrder.lean` | The order the construction fixes on its own: `universallyLE_iff`. |
 | `ZetaRigidity/Examples.lean` | Worked examples and regression tests. |
 
 `ZetaRigidity/Extensions/` holds separate developments that build on the same construction but

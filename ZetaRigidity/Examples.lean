@@ -6,6 +6,7 @@ Authors: Eugen Lindorfer
 import ZetaRigidity.Zeta
 import ZetaRigidity.Automorphisms
 import ZetaRigidity.Sharpness
+import ZetaRigidity.UniversalOrder
 
 /-!
 # Worked examples and regression tests
@@ -157,5 +158,40 @@ example : lift (fun i => (Nat.nth Nat.Prime i : ℝ)) example40 = 40 := by
   rw [example40, map_mul, map_pow, lift_atom, lift_atom,
     Nat.nth_prime_zero_eq_two, Nat.nth_prime_two_eq_five]
   norm_num
+
+/-! ## The order determined without a valuation
+
+Checks on `ZetaRigidity/UniversalOrder.lean`. The two valuations below are the content of
+`not_universallyLE_mul`: they order `p₀ · p₁` against `p₂` in opposite directions, so the
+construction cannot decide between them. -/
+
+/-- Tail degrees of `p₀³ · p₂`, against hand-computed values. -/
+example : tailDegree example40 0 = 4 ∧ tailDegree example40 1 = 1
+    ∧ tailDegree example40 2 = 1 ∧ tailDegree example40 3 = 0 := by
+  refine ⟨?_, ?_, ?_, ?_⟩ <;> simp [example40]
+
+/-- Under the ordinary primes, `p₀ · p₁ = 6` exceeds `p₂ = 5`. -/
+example : primeVal.extend (atom 2) < primeVal.extend (atom 0 * atom 1) := by
+  rw [map_mul, Valuation.extend_atom, Valuation.extend_atom, Valuation.extend_atom]
+  simp only [primeVal, Nat.nth_prime_zero_eq_two, Nat.nth_prime_one_eq_three,
+    Nat.nth_prime_two_eq_five]
+  norm_num
+
+/-- Under a valuation that jumps at the third prime the order is reversed: `exp 1 * exp 2`
+is below `exp 4`. -/
+example : (stepVal 2 1 zero_le_one).extend (atom 0 * atom 1)
+    < (stepVal 2 1 zero_le_one).extend (atom 2) := by
+  rw [map_mul, Valuation.extend_atom, Valuation.extend_atom, Valuation.extend_atom,
+    stepVal_apply, stepVal_apply, stepVal_apply, ← Real.exp_add]
+  exact Real.exp_lt_exp.mpr (by norm_num)
+
+/-- The order is strictly coarser than divisibility: `p₀` is below `p₁` in every valuation, but
+does not divide it. -/
+example : UniversallyLE (atom 0) (atom 1) ∧ ¬ (atom 0 ∣ atom 1) := by
+  refine ⟨universallyLE_atom_succ 0, ?_⟩
+  rintro ⟨c, hc⟩
+  have h := congrArg (fun m => expo m 0) hc
+  simp at h
+  omega
 
 end ZetaRigidity

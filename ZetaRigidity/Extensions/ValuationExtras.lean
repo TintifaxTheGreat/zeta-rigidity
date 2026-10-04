@@ -6,19 +6,18 @@ Authors: Eugen Lindorfer
 import ZetaRigidity.Valuation
 
 /-!
-# Further facts about valuations
+# Divergence of the prime values
 
-Two facts about `Valuation` that the rigidity theorem does not use. They are collected here
-rather than in `ZetaRigidity/Valuation.lean` so that the main line stays limited to the
-structure and its multiplicative extension.
+A fact about `Valuation` that the rigidity theorem does not use, collected here rather than in
+`ZetaRigidity/Valuation.lean` so that the main line stays limited to what it needs.
 
 ## Main results
 
+* `Valuation.summable_atoms`: summability restricts from formal products to the primes.
 * `Valuation.tendsto_atTop_of_summable`: if the Dirichlet series converges at one point then the
   prime values tend to infinity.
-* `Valuation.log_extend`: the logarithm of `extend` is linear in the exponent vector.
 
-Both are used by the other modules in `ZetaRigidity/Extensions/`.
+Used by the other modules in `ZetaRigidity/Extensions/`.
 -/
 
 namespace ZetaRigidity
@@ -58,21 +57,6 @@ theorem tendsto_atTop_of_summable {s : ℝ} (hs : 0 < s)
   have hzero := (v.summable_atoms h).tendsto_atTop_zero
   have := ge_of_tendsto' hzero (fun i => hlow i)
   exact absurd this (not_le.mpr (Real.rpow_pos_of_pos hpos _))
-
-/-! ## Logarithms
-
-`extend` is multiplicative, so its logarithm is additive, and therefore linear in the exponent
-vector with the `Real.log (v i)` as coordinates. For the rational primes these coordinates are
-linearly independent; see `ZetaRigidity/Extensions/LogIndependence.lean`.
--/
-
-/-- The logarithm of the magnitude of a formal product is the exponent-weighted sum of the
-logarithms of the prime values. -/
-lemma log_extend (v : Valuation) (m : FormalProd) :
-    Real.log (v.extend m) = (Multiplicative.toAdd m).sum fun i k => k * Real.log (v i) := by
-  change Real.log ((Multiplicative.toAdd m).prod fun i k => v i ^ k) = _
-  rw [Finsupp.prod, Real.log_prod fun i _ => (pow_pos (v.pos i) _).ne']
-  exact Finset.sum_congr rfl fun i _ => Real.log_pow _ _
 
 end Valuation
 
