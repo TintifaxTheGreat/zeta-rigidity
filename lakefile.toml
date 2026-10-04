@@ -1,6 +1,14 @@
 name = "zeta-rigidity"
 version = "0.1.0"
-keywords = ["math"]
+description = "A rigidity theorem: a valuation whose Dirichlet series matches the Riemann zeta function must be the ordinary primes."
+keywords = [
+  "math",
+  "number-theory",
+  "analytic-number-theory",
+  "prime-numbers",
+  "riemann-zeta-function",
+  "formalization",
+]
 license = "Apache-2.0"
 defaultTargets = ["ZetaRigidity"]
 
