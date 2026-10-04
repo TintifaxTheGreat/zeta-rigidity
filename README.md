@@ -73,6 +73,16 @@ and `p₂` are incomparable: the ordinary primes give `6 > 5`, while `stepVal 2 
 the third prime, gives `e³ < e⁴`. Both witnesses are in `ZetaRigidity/Examples.lean`. A total
 order has to come from outside, and the ζ-condition is what supplies it.
 
+Two further limits are recorded. Nothing definable from the multiplicative structure alone can
+help: by `iff_atom_of_aut_invariant` and `rel_atom_iff_of_aut_invariant`
+(`ZetaRigidity/Automorphisms.lean`), any automorphism-invariant property or relation — a graph
+on formal products, for instance — is unchanged by relabelling the primes. And strengthening
+the order axioms is not enough either: `exists_locallyFinite_order_ne_primes` gives a locally
+finite system, with monotone multiplication and increasing atoms, whose order still differs from
+the primes'. Its atoms are `3, 5, 7, 11, …`, putting `p₀² = 9` above `p₂ = 7` where the ordinary
+primes put `4` below `5`. What `ℤ_{>0}` has and these lack is that its values have no gaps,
+which is `isZetaNormalized_of_equiv` and so equivalent to the ζ-condition again.
+
 ## Limitations
 
 **The hypothesis is equivalent to the conclusion.** `∑ₘ V(m)^(-s) = ζ(s)` holds if and only if

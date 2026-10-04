@@ -194,4 +194,35 @@ example : UniversallyLE (atom 0) (atom 1) ∧ ¬ (atom 0 ∣ atom 1) := by
   simp at h
   omega
 
+/-! ## Limits on recovering the primes without ζ
+
+Checks on the two obstructions: nothing definable from the monoid alone separates two primes
+(`ZetaRigidity/Automorphisms.lean`), and local finiteness does not determine the order
+(`ZetaRigidity/UniversalOrder.lean`). -/
+
+/-- `IsPrimeElt` is automorphism-invariant, so it cannot tell `p₀` from `p₅`. Any graph built
+from the multiplicative structure is invariant in the same way. -/
+example : IsPrimeElt (atom 0) ↔ IsPrimeElt (atom 5) :=
+  iff_atom_of_aut_invariant (fun φ _ hm => isPrimeElt_aut φ hm) 0 5
+
+/-- The witness really is the system that skips the first prime. -/
+example : shiftedVal 0 = 3 ∧ shiftedVal 2 = 7 := by
+  constructor
+  · simp [Nat.nth_prime_one_eq_three]
+  · simp [Nat.nth_prime_three_eq_seven]
+
+/-- It puts `p₀² = 9` above `p₂ = 7` … -/
+example : shiftedVal.extend (atom 2) < shiftedVal.extend (atom 0 ^ 2) := by
+  rw [Valuation.extend_atom, map_pow, Valuation.extend_atom, shiftedVal_apply, shiftedVal_apply,
+    show Nat.nth Nat.Prime 3 = 7 from Nat.nth_prime_three_eq_seven,
+    show Nat.nth Nat.Prime 1 = 3 from Nat.nth_prime_one_eq_three]
+  norm_num
+
+/-- … while the ordinary primes put `p₀² = 4` below `p₂ = 5`. The two orders therefore disagree,
+even though both systems are locally finite. -/
+example : primeVal.extend (atom 0 ^ 2) < primeVal.extend (atom 2) := by
+  rw [map_pow, Valuation.extend_atom, Valuation.extend_atom]
+  simp only [primeVal, Nat.nth_prime_zero_eq_two, Nat.nth_prime_two_eq_five]
+  norm_num
+
 end ZetaRigidity

@@ -74,6 +74,13 @@ lemma one_le_extend (m : FormalProd) : 1 ≤ v.extend m :=
 lemma extend_pos (m : FormalProd) : 0 < v.extend m :=
   lt_of_lt_of_le one_pos (v.one_le_extend m)
 
+/-- `extend` is monotone in the valuation: raising the value of every prime raises the value of
+every formal product. -/
+lemma extend_mono {v w : Valuation} (h : ∀ i, v i ≤ w i) (m : FormalProd) :
+    v.extend m ≤ w.extend m :=
+  Finset.prod_le_prod₀ (fun i _ => pow_nonneg (v.pos i).le _)
+    (fun i _ => pow_le_pow_left₀ (v.pos i).le (h i) _)
+
 /-- Only the empty product has magnitude `1`, so `1` is the least element in the ordering by
 magnitude. -/
 lemma one_lt_extend {m : FormalProd} (hm : m ≠ 1) : 1 < v.extend m := by
