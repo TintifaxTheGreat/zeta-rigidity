@@ -88,6 +88,22 @@ lemma one_lt_extend {m : FormalProd} (hm : m ≠ 1) : 1 < v.extend m := by
     Finset.one_le_prod₀ fun j _ => one_le_pow₀ (v.one_lt j).le
   nlinarith
 
+/-! ## Logarithms
+
+`extend` is multiplicative, so its logarithm is additive and therefore linear in the exponent
+vector, with the `Real.log (v i)` as coordinates. This is the bridge from the multiplicative
+structure to a linear one, and it is used by `ZetaRigidity/UniversalOrder.lean` and by
+`ZetaRigidity/Extensions/LogIndependence.lean`.
+-/
+
+/-- The logarithm of the magnitude of a formal product is the exponent-weighted sum of the
+logarithms of the prime values. -/
+lemma log_extend (v : Valuation) (m : FormalProd) :
+    Real.log (v.extend m) = (Multiplicative.toAdd m).sum fun i k => k * Real.log (v i) := by
+  change Real.log ((Multiplicative.toAdd m).prod fun i k => v i ^ k) = _
+  rw [Finsupp.prod, Real.log_prod fun i _ => (pow_pos (v.pos i) _).ne']
+  exact Finset.sum_congr rfl fun i _ => Real.log_pow _ _
+
 end Valuation
 
 end ZetaRigidity

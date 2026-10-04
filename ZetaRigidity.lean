@@ -7,6 +7,7 @@ import ZetaRigidity.Model
 import ZetaRigidity.Zeta
 import ZetaRigidity.Sharpness
 import ZetaRigidity.Automorphisms
+import ZetaRigidity.UniversalOrder
 import ZetaRigidity.Examples
 
 -- Separate developments built on the same construction, not used by the main theorem.
